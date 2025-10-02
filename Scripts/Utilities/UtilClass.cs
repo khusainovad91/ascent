@@ -83,6 +83,14 @@ public static class UtilClass
         LeanTween.alpha(objectToActivate.GetComponent<RectTransform>(), 1f, 1f).setEase(LeanTweenType.easeOutSine);
     }
 
+    public static void LeanPopDown(GameObject objectToDeactivate, float time)
+    {
+        LeanTween.scale(objectToDeactivate, Vector3.zero, time).setEase(LeanTweenType.easeInBack);
+
+        // Также можно плавно уменьшать прозрачность с помощью альфа-канала
+        LeanTween.alpha(objectToDeactivate.GetComponent<RectTransform>(), 0f, 1f).setEase(LeanTweenType.easeInSine);
+    }
+
     public static void LeanPopDown(GameObject objectToDeactivate)
     {
         // Плавно уменьшаем масштаб объекта от текущего размера до 0
@@ -272,8 +280,10 @@ public static class UtilClass
             Debug.Log("enemy: " + enemy);
             enemy.Key.Outline.OutlineColor = Color.white;
             enemy.Key.Outline.enabled = true;
-            enemy.Key.RangeFromHero.GetComponentInChildren<TMP_Text>().text = enemy.Value.ToString();
-            enemy.Key.RangeFromHero.SetActive(true);
+            //enemy.Key.RangeFromHero.GetComponentInChildren<TMP_Text>().text = enemy.Value.ToString();
+            //UtilClass.LeanPopUp(enemy.Key.RangeFromHero, LeanTweenType.easeOutBounce);
+            
+            //enemy.Key.RangeFromHero.SetActive(true);
             //todo isTargeted true
         }
     }

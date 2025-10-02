@@ -17,7 +17,6 @@ public class WhatToDoText : Singleton<WhatToDoText>
     public void SetTextAndEnable(string text)
     {
         _text.SetText(text);
-        Debug.Log("text enabled");
         this.gameObject.SetActive(true);
         LeanTween.scale(this.gameObject, new Vector3(1.2f, 1.2f, 1.2f), 1f).setLoopPingPong();
     }

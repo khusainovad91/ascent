@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 using System.Collections;
-using CodeMonkey;
 using System.Data.Common;
 using static UnityEngine.GraphicsBuffer;
 using NUnit.Framework.Constraints;
@@ -26,7 +25,7 @@ public class EnemyController : NetworkBehaviour
         base.OnNetworkSpawn();
         _enemyObject = GetComponent<EnemyObject>();
         Stats = GetComponent<EnemyStats>();
-        EventManager.Instance.Unsubscribe("HeroReacted", FindNewAttackCell);
+        EventManager.Instance.Subscribe("HeroReacted", FindNewAttackCell);
     }   
 
     public IEnumerator StartTurn()
@@ -80,33 +79,33 @@ public class EnemyController : NetworkBehaviour
         if (AttackCell != null)
         {
             Debug.Log("AttackCell: " + AttackCell.cell.coords);
-            Debug.Log($"hasAttcked: {hasAttacked}, Stats.MovementPoints: {Stats.MovementPoints}");
+            Debug.Log($"hasAttacked: {hasAttacked}, Stats.MovementPoints: {Stats.MovementPoints}");
 
-            while (!hasAttacked && Stats.MovementPoints > 0) //&& AttackCell != null)
+            while (!hasAttacked && Stats.MovementPoints >= 0) //&& AttackCell != null)
             {
-                if (_enemyObject.CurrentCell != AttackCell.cell && Stats.MovementPoints <= 0 && hasSpendActionOnMove) break;
 
-                if (_enemyObject.CurrentCell == AttackCell.cell)
+                Debug.Log("LOS = " + LineOfSight.CheckLos(_enemyObject.CurrentCell, AttackCell.target));
+                Debug.Log("RBC = " + UtilClass.RangeBetweenCells(_enemyObject.CurrentCell, AttackCell.target.CurrentCell));
+
+                if (LineOfSight.CheckLos(_enemyObject.CurrentCell, AttackCell.target)
+                        && UtilClass.RangeBetweenCells(_enemyObject.CurrentCell, AttackCell.target.CurrentCell) <= Stats.AttackRange)
                 {
-                    if (LineOfSight.CheckLos(_enemyObject.CurrentCell, AttackCell.target)
-                      && UtilClass.RangeBetweenCells(_enemyObject.CurrentCell, AttackCell.target.CurrentCell) <= Stats.AttackRange)
-                        {
-                        Debug.Log("AttackCell.target.CurrentCell: " + AttackCell.target.CurrentCell);
-                            AttackAction aa = new AttackAction(_enemyObject, AttackCell.target);
-                            yield return aa.Execute();
-                            hasAttacked = true;
-                            break;
-                        } else
-                        {
-                            FindNewAttackCell();
-                        }
+                    Debug.Log("AttackCell.target.CurrentCell: " + AttackCell.target.CurrentCell);
+                    AttackAction aa = new AttackAction(_enemyObject, AttackCell.target);
+                    yield return aa.Execute();
+                    hasAttacked = true;
+                    break;
+                }
+                else
+                {
+                    FindNewAttackCell();
                 }
 
-                    Debug.Log($"Количество оставшихся очков движенния {Stats.MovementPoints} \n" +
-                        $"Дальность атаки {Stats.AttackRange} \n" +
-                        $"Дальность до клетки {AttackCell.range}");
+                //Debug.Log($"Количество оставшихся очков движенния {Stats.MovementPoints} \n" +
+                //    $"Дальность атаки {Stats.AttackRange} \n" +
+                //    $"Дальность до клетки {AttackCell.range}");
 
-                    if (Stats.MovementPoints + Stats.AttackRange <= AttackCell.range)
+                if (Stats.MovementPoints + Stats.AttackRange <= AttackCell.range)
                     {
                         if (CanSpendActionOnMove())
                         {
@@ -120,9 +119,10 @@ public class EnemyController : NetworkBehaviour
                 {
                     for (int i = 0; i < localAttackCell.pathToCell.Count && Stats.MovementPoints > 0; i++)
                         {
+                            //todo outofrangexeception
                             StepAction moveAction = new StepAction(_enemyObject, AttackCell.pathToCell[i].Cell);
                             yield return moveAction.Execute();
-                        }
+                    }
                 }
 
             }
@@ -152,9 +152,16 @@ public class EnemyController : NetworkBehaviour
 
     private void FindNewAttackCell()
     {
+        StartCoroutine(FindNewAttackCel());
         AttackCell = CanSpendActionOnMove()
-                        ? FindPositionForAttack(Stats.MovementPoints + Stats.Speed + Stats.AttackRange)
-                        : FindPositionForAttack(Stats.MovementPoints + Stats.AttackRange);
+        ? FindPositionForAttack(Stats.MovementPoints + Stats.Speed + Stats.AttackRange)
+        : FindPositionForAttack(Stats.MovementPoints + Stats.AttackRange);
+
+    }
+
+    private IEnumerator FindNewAttackCel()
+    {
+        yield return new WaitForSeconds(1f);
     }
 
     protected virtual IEnumerator TrySpecialActions()
@@ -289,8 +296,6 @@ public class EnemyController : NetworkBehaviour
                 return result;
             }
         }
-
-        Debug.Log("Kek2");
         return null;
     }
 
@@ -436,4 +441,5 @@ public class EnemyController : NetworkBehaviour
         EventManager.Instance.Unsubscribe("HeroReacted", FindNewAttackCell);
         base.OnNetworkDespawn();
     }
+
 }

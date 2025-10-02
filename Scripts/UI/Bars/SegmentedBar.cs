@@ -64,7 +64,7 @@ public abstract class SegmentedBar : MonoBehaviour
     {
         if (segments.Count > characterStat)
         {
-            yield return RemoveSegmentsOneByOne(characterStat, 0.5f);
+            yield return RemoveSegmentsOneByOne(characterStat, 1f);
         }
         else if (segments.Count() < characterStat)
         {

@@ -31,6 +31,8 @@ public class StepCommand : ICommand
         //todo нельз€ сменить на Moving так как если сменить Reacting, то сразу продолжат ходить враги (StepAction 72)
         // ќбновление текущей €чейки
         BoardManager.Instance.ClearCellServerRpc(_fieldHero.CurrentCell.coords);
+        _fieldHero.CurrentCell = null;
+        //_fieldHero.OcupiedCells.Clear(); //
         BoardManager.Instance.OcupieCellServerRpc(_targetCell.coords, _fieldHero.GetNetworkObjectReference());
         //_fieldHero.CurrentCell.ClearCell();
         //_targetCell.OcupieCell(_fieldHero);

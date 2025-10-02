@@ -23,7 +23,7 @@ public class ThrowCommand : RightClickCommandSelectEnemy
 
     public override string GetCommandText()
     {
-        return "Throw at enemy <sprite name=\"arrow\"><sprite name=\"strength\">, range = <sprite name=\"strength\">";
+        return "Throw at enemy <sprite name=\"arrow\"><sprite name=\"strength\">, \n max range = <sprite name=\"strength\">";
     }
 
     public override void SetupCommand(FieldHero chosenHero, FieldObject chosenObject)
@@ -32,6 +32,7 @@ public class ThrowCommand : RightClickCommandSelectEnemy
         {
             _isAwaiable = true;
             Hero = chosenHero;
+            UiSelectHandler.Instance.Hero = chosenHero.HeroData;
             _thisObject = chosenObject;
         }
     }

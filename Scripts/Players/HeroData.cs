@@ -70,7 +70,7 @@ public class HeroData
 
     public void ChangeStateFase2(HeroState state)
     {
-        Debug.Log("Поменял состояние героя на: " + state);
+        Debug.Log("Поменял состояние героя: " + FieldHero.name + " на: " + state);
         this.CurrentState = state;
         EventManager.Instance.TriggerEvent<HeroData>("OnHeroStateChange", this);
 

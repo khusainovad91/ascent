@@ -16,7 +16,7 @@ public class CloseDoorCommand : RightClickCommandNoSelect
 
     public override string GetCommandText()
     {
-        return "<sprite name=\"arrow\"> Закрыть дверь";
+        return "<sprite name=\"arrow\"> Close door";
     }
 
     public override void SetupCommand(FieldHero chosenHero, FieldObject chosenObject)
@@ -43,6 +43,8 @@ public class CloseDoorCommand : RightClickCommandNoSelect
             || UtilClass.RangeBetweenCells(BoardManager.Instance.CellsInBoard[new Vector3Int(objectCellCoords.x + 1, 0, objectCellCoords.z + 1)], chosenHero.CurrentCell) <= range
             || UtilClass.RangeBetweenCells(BoardManager.Instance.CellsInBoard[new Vector3Int(objectCellCoords.x + 1, 0, objectCellCoords.z)], chosenHero.CurrentCell) <= range;
         }
+        Debug.Log("range: " + IsAnoughRange);
+        Debug.Log("closed: " + door.isClosed.Value);
         if (IsAnoughRange && !door.isClosed.Value)
         {
             _isAwaiable = true;
@@ -60,6 +62,7 @@ public class CloseDoorCommand : RightClickCommandNoSelect
         door.GetComponent<RightClickHandler>().RemoveCommandRpc(CommandType.CloseDoor);
         SelectControllerManager.Instance.ChangeMode(SelectionMode.Free);
         IsExecuted = true;
+        EventManager.Instance.TriggerEvent("RecalculateMovement");
     }
 
     public override void Undo()

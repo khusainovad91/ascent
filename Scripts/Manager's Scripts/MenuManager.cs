@@ -35,6 +35,8 @@ public class MenuManager : MonoBehaviour
 
     void StartGame()
     {
-        CustomSceneManager.Instance.LoadScene(Scene.TestScene);
+        //SceneFader.Instance.StartSceneWithFaderServerRpc(CustomScene.TestScene);
+        StartCoroutine(SceneFader.Instance.LoadSceneWithFader(CustomScene.TestScene));
+        //CustomSceneManager.Instance.LoadScene(Scene.TestScene);
     }
 }

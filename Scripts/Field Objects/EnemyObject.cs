@@ -10,10 +10,13 @@ using UnityEngine.UI;
 [RequireComponent(typeof(EnemyController))]
 [RequireComponent(typeof(AttackingDicePool))]
 [RequireComponent(typeof(DeffendingDicePool))]
+[RequireComponent(typeof(PersonSoundHandler))]
 public class EnemyObject : FieldObject
 {
     [SerializeField]
     private GameObject _sunSkullTextSegmentPrefab;
+    [SerializeField]
+    public Animator Animator;
     [field:SerializeField]
     public VerticalLayoutGroup hlzSunAndSkullTexts { get; private set; }
     //public DeffendingDicePool DeffendingDicePool {  get; private set; }
@@ -37,7 +40,8 @@ public class EnemyObject : FieldObject
         currentState = EnemyState.Idle;
         EnemyController = GetComponent<EnemyController>();
         RangeFromHero = transform.Find("Canvas").transform.Find("Range").gameObject;
-        RangeFromHero.SetActive(false);
+        UtilClass.LeanPopDown(RangeFromHero, 0f);
+        //RangeFromHero.SetActive(false);
 
         StartCoroutine(SpawnDicePoolsDelayed());
     }
@@ -110,9 +114,16 @@ public class EnemyObject : FieldObject
         {
             UtilClass.LeanPopUp(Stats.HealthBar.gameObject, LeanTweenType.easeOutBounce);
             UtilClass.LeanPopUp(Stats.EnemyConditionBar.gameObject, LeanTweenType.easeOutBounce);
+            if (HeroControllerManager.Instance.FieldHero != null)
+            {
+                int rangeToEnemy = UtilClass.CalulcateDistance(HeroControllerManager.Instance.FieldHero.CurrentCell, CurrentCell);
+                GetComponentInChildren<TMP_Text>().text = rangeToEnemy.ToString();
+                UtilClass.LeanPopUp(RangeFromHero, LeanTweenType.easeOutBounce);
+            }
+
         }
 
-        if(!isTargeted.Value && SelectControllerManager.Instance.currentMode == SelectionMode.Enemy)
+        if (!isTargeted.Value && SelectControllerManager.Instance.currentMode == SelectionMode.Enemy)
         {
             UtilClass.LeanPopUp(RangeFromHero, LeanTweenType.easeOutBounce);
         }
@@ -143,10 +154,35 @@ public class EnemyObject : FieldObject
     public void ChangeStateRpc(EnemyState state)
     {
         currentState = state;
+        HandleAnimations(currentState);
         //switch (currentState) {
         //    case EnemyState.EndedTurn:
 
         //}
+    }
+
+    private void HandleAnimations(EnemyState state)
+    {
+        switch (state)
+        {
+            case EnemyState.Moving:
+                {
+                    Animator.SetBool("Moving", true);
+                    break;
+                }
+            case EnemyState.Idle:
+                {
+                    Animator.SetBool("Moving", false);
+                    break;
+                }
+            case EnemyState.Attacking:
+                {
+                    Animator.SetTrigger("Attack");
+                    break;
+                }
+            default: 
+                break;
+        }
     }
 }
 

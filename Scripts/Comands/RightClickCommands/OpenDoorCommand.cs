@@ -23,7 +23,7 @@ public class OpenDoorCommand : RightClickCommandNoSelect
                 return "Желтый ключ <sprite name=\"arrow\"> Открыть дверь"; //TODO Add Yellow sprite to glyphs
             }
         } 
-        return "<sprite name=\"arrow\"> Открыть дверь";
+        return "<sprite name=\"arrow\"> Open door";
     }
 
     public override void SetupCommand(FieldHero chosenHero, FieldObject chosenObject)
@@ -67,6 +67,7 @@ public class OpenDoorCommand : RightClickCommandNoSelect
         door.GetComponent<RightClickHandler>().RemoveCommandRpc(CommandType.OpenDoor);
         SelectControllerManager.Instance.ChangeMode(SelectionMode.Free);
         IsExecuted = true;
+        EventManager.Instance.TriggerEvent("RecalculateMovement");
     }
 
     public override void Undo()

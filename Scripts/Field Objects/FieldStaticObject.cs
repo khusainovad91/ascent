@@ -2,6 +2,7 @@ using UnityEngine;
 using ExtensionMethods;
 using Unity.VisualScripting;
 using UnityEngine.ProBuilder.MeshOperations;
+using System;
 
 public class FieldStaticObject : FieldObject
 {
@@ -40,35 +41,28 @@ public class FieldStaticObject : FieldObject
 
     private void PlaceObjectOnAField()
     {
-        if (!IsServer) return;
+        //if (!IsServer) return;
         if (_isRandomPlaced && _tileMap != null)
         {
             switch (Size)
             {
                 case 1:
-                    this.OcupiedCells.Add(_tileMap.GetRandomNonOcupiedCellInTile());
+                    CurrentCell = _tileMap.GetRandomNonOcupiedCellInTile();
+                    //this.OcupiedCells.Add(_tileMap.GetRandomNonOcupiedCellInTile());
                     CurrentCell.PlaceObjectInACell(this);
                     break;
                 case 2:
-                    this.OcupiedCells.AddRange(_tileMap.GetRandomNotOcupiedCellsInTile(2));
-                    break;
+                    throw new NotImplementedException();
+                    //this.OcupiedCells.AddRange(_tileMap.GetRandomNotOcupiedCellsInTile(2));
                 default:
                     break;
             }
-            
-            //todo delete
-            //else if (Size == 1)
-            //{
-
-            //} else return;
-            //this.OcupiedCells.Add(_tileMap.GetRandomNonOcupiedCellInTile());
-            //this.CurrentCell = _tileMap.GetRandomNonOcupiedCellInTile();
-            //CurrentCell.PlaceObjectInACell(this);
         } 
         else {
             if (Size <= 1)
                 {
-                    OcupiedCells.Add(this.PlaceObjectInACell());
+                    //CurrentCell.PlaceObjectInACell(this);
+                    CurrentCell = this.PlaceObjectInACell();
                 } else
                 {
                     var coordsOfObject = UtilClass.GetRenderCoordinates(this.gameObject);
@@ -87,7 +81,7 @@ public class FieldStaticObject : FieldObject
 
         if (isRandomRotated)
         {
-            this.transform.Find("Visuals").transform.RotateAround(this.transform.position, Vector3.up, Random.Range(0, 360));
+            this.transform.Find("Visuals").transform.RotateAround(this.transform.position, Vector3.up, UnityEngine.Random.Range(0, 360));
         }
     }
 

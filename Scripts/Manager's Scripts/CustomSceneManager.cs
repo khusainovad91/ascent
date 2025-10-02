@@ -7,7 +7,7 @@ using System;
 
 public class CustomSceneManager : PersistentSingleton<CustomSceneManager>
 {
-    public void LoadScene(Scene newScene)
+    public void LoadScene(CustomScene newScene)
     {
         if (!NetworkManager.Singleton.IsServer)
         {
@@ -39,17 +39,17 @@ public class CustomSceneManager : PersistentSingleton<CustomSceneManager>
         Debug.Log("Все клиенты загрузили сцену");
     }
 
-    public string GetSceneName(Scene scene)
+    public string GetSceneName(CustomScene scene)
     {
         switch (scene)
         {
-            case Scene.CharacterSelectScene:
-                return "CharacterSelect"; // Точное имя как в Build Settings
-            case Scene.TestScene:
+            case CustomScene.CharacterSelectScene:
+                return "CharacterSelectScene"; // Точное имя как в Build Settings
+            case CustomScene.TestScene:
                 return "TestScene";
-            case Scene.MultiplayerMenu:
+            case CustomScene.MultiplayerMenu:
                 return "MultiplayerMenu";
-            case Scene.BarScene1:
+            case CustomScene.BarScene1:
                 return "BarScene1";
             default:
                 throw new ArgumentOutOfRangeException();
@@ -57,7 +57,7 @@ public class CustomSceneManager : PersistentSingleton<CustomSceneManager>
     }
 }
 
-public enum Scene
+public enum CustomScene
 {
     CharacterSelectScene,
     TestScene,

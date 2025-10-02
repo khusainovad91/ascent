@@ -18,10 +18,12 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
     [SerializeField] private GameObject _pathNumber;
     //4 testing purpose maded public
     [SerializeField] public GameObject FloorNumberPrefab;
-    [SerializeField] public GameObject _possibleCellsToGoPrefab;
+    //[SerializeField] public GameObject _possibleCellsToGoPrefab;
+    
+    [SerializeField] private ObjectPool _possibleCellsPool;
     [SerializeField] private Camera _currentCamera;
 
-    private GameObject _possibleCellsToGo;
+    private List<GameObject> _possibleCellsToGo;
     private Vector3Int _whereToGo;
 
     private void OnEnable()
@@ -51,7 +53,6 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
     {
         if (FieldHero == null || GameManager.Instance.StateOfGame.Value != GameState.HeroTurn || FieldHero.HeroData.CurrentState == HeroState.Moving) return;
 
-        ClearPossibleCellsToGo();
         InitializePathFinder();
     }
 
@@ -64,7 +65,7 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
         {
             return;
         }
-
+       
         InitializePathFinder();
     }
 
@@ -77,7 +78,7 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        //Board = BoardManager.Instance.CellsInBoard;
+        _possibleCellsToGo = new List<GameObject>();
         if (Instance != null)
         {
             Destroy(Instance);
@@ -92,16 +93,13 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
         {
             return;
         }
+
         switch (SelectControllerManager.Instance.currentMode)
         {
             case SelectionMode.Free:
                 if (FieldHero.HeroData.CurrentState == HeroState.Idle)
                 {
-                    ShowPossibleCellsToGo(_possibleCellsToGoPrefab, FieldHero.HeroData.Stats.MovementPoints);
                     HandlePathSelection();
-                } else
-                {
-                    ClearPossibleCellsToGo();
                 }
                 break;
             case SelectionMode.Hero:
@@ -109,20 +107,10 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
         }
     }
 
-    //private void HandleStateChange(HeroData heroData)
-    //{
-    //    if (_fieldHero?.HeroData != heroData) return;
-
-    //    if (heroData.CurrentState == HeroState.Idle)
-    //    {
-    //        InitializePathFinder();
-    //    }
-    //}
 
     private void HandleStateChange(HeroData heroData)
     {
         if (FieldHero?.HeroData != heroData) return;
-
         if (heroData.CurrentState == HeroState.Idle)
         {
             InitializePathFinder();
@@ -150,11 +138,12 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
 
     private void InitializePathFinder()
     {
+        ClearPossibleCellsToGo();
         _pathFinder = new PathFinder(FieldHero.CurrentCell, FieldHero.HeroData.Stats.MovementPoints);
 
         if (FieldHero.HeroData.Stats.MovementPoints > 0)
         {
-            ShowPossibleCellsToGo(_possibleCellsToGoPrefab, FieldHero.HeroData.Stats.MovementPoints);
+            ShowPossibleCellsToGo(FieldHero.HeroData.Stats.MovementPoints);
         }
     }
 
@@ -162,21 +151,15 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
     {
         if (FieldHero == null || FieldHero.HeroData != heroData || FieldHero.HeroData.CurrentState == HeroState.Moving) return;
 
-        ClearPossibleCellsToGo();
         InitializePathFinder();
     }
 
 
     //показывает возможные клетки для передвижения
-    public void ShowPossibleCellsToGo(GameObject pointerPrefab, int movementPoints)
+    public void ShowPossibleCellsToGo(int movementPoints)
     {
         if (!FieldHero.IsOwner) return;
         _pathFinder.UpdateNotOcupiedCellsInRange(FieldHero.CurrentCell);
-        if (_possibleCellsToGo != null)
-        {
-            GameObject.Destroy(_possibleCellsToGo);
-        }
-        _possibleCellsToGo = new GameObject("possibleCellsToGo");
 
         foreach (var item in _pathFinder.cellsToChooseFrom)
         {
@@ -184,8 +167,10 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
             bool isPathPossible = path != null;
             if (isPathPossible && path.Count() <= movementPoints + 1)
             {
-                GameObject pointer = GameObject.Instantiate(pointerPrefab, item.Value.coords.CenterOfCell(), pointerPrefab.transform.rotation);
-                pointer.transform.parent = _possibleCellsToGo.transform;
+                GameObject pointer = _possibleCellsPool.Get();
+                _possibleCellsToGo.Add(pointer);
+                pointer.transform.position = item.Value.coords.CenterOfCell();
+                pointer.transform.rotation = Quaternion.Euler(0, 0, 0);
             }
         }
     }
@@ -238,9 +223,11 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
     //уничтожает объект хранящий возможные клетки для передвижения
     public void ClearPossibleCellsToGo()
     {
-        if (_possibleCellsToGo != null)
+        if (_possibleCellsToGo != null && _possibleCellsToGo.Count > 0)
         {
-            GameObject.Destroy(_possibleCellsToGo);
+            _possibleCellsToGo.ForEach(cell => { 
+                _possibleCellsPool.ReturnToPool(cell);
+            });
         }
     }
 
@@ -263,10 +250,6 @@ public class HeroControllerManager : NetworkBehaviour//PersistentSingleton<HeroC
             {
                 return possibleCell;
             }
-        }
-        else
-        {
-            ClearUiOnFloor();
         }
 
         return null;

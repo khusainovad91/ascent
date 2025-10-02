@@ -1,4 +1,3 @@
-using CodeMonkey.Utils;
 using ExtensionMethods;
 using System;
 using System.Collections;
@@ -12,9 +11,12 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(AttackingDicePool))]
 [RequireComponent(typeof(DeffendingDicePool))]
 [RequireComponent(typeof(FateDicePool))]
+[RequireComponent(typeof(PersonSoundHandler))]
 public class FieldHero : FieldObject
 {
     [field: SerializeField] public Sprite HeroSprite { get; private set; }
+    [SerializeField] public Animator Animator;
+
     public HeroData HeroData { get; private set; }
 
     public override void OnNetworkSpawn()
@@ -52,6 +54,7 @@ public class FieldHero : FieldObject
     [Rpc(SendTo.Everyone)]
     private void ChangeStateRpcClientRpc(HeroState state)
     {
+        HandleAnimations(state);
         HeroData.ChangeStateFase2(state);
     }
 
@@ -82,4 +85,29 @@ public class FieldHero : FieldObject
         base.OnNetworkDespawn();
         EventManager.Instance.Unsubscribe("OnRoundStart", SetUpHeroForNewRound);
     }
+
+    private void HandleAnimations(HeroState state)
+    {
+        if (Animator == null) return;
+        switch (state)
+        {
+            case HeroState.Idle:
+                Animator.SetBool("Run", false);
+                break;
+            case HeroState.Moving:
+                Animator.SetBool("Run", true);
+                break;
+            case HeroState.Attacking:
+                break;
+            case HeroState.Fainted:
+                Animator.SetBool("Dead", true);
+                break;
+            case HeroState.Reacting:
+                Animator.SetTrigger("React");
+                break;
+            default:
+                break;
+        }
+    }
+
 }

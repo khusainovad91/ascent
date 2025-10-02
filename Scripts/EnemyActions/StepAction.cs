@@ -1,4 +1,5 @@
 using ExtensionMethods;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,6 @@ public class StepAction : IAction
     {
         _enemyObject.Stats.ChangeMovementPointsClientRpc(-1);
         yield return new WaitForSeconds(0.5f);
-
         _enemyObject.ChangeStateRpc(EnemyState.Moving);
         Vector3 targetPosition = _cellToGo.coords.CenterOfCell();
 
@@ -42,13 +42,16 @@ public class StepAction : IAction
 
         BoardManager.Instance.ClearCellServerRpc(_enemyObject.CurrentCell.coords);
         //TODO опции для двух и более клеток
-        _enemyObject.OcupiedCells.Remove(_enemyObject.CurrentCell);
+        _enemyObject.CurrentCell = null;
+        //_enemyObject.OcupiedCells.Clear();
+        //_enemyObject.OcupiedCells.Remove(_enemyObject.CurrentCell);
         BoardManager.Instance.OcupieCellServerRpc(_cellToGo.coords, _enemyObject.GetNetworkObjectReference());
 
         IsExecuted = true;
         _enemyObject.ChangeStateRpc(EnemyState.Idle);
         CameraController.Instance.SetAutomaticMoveRpc(false);
 
+        _enemyObject.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Move);
         //wait until hero do something
         yield return HandleHeroReaction();
         yield return new WaitForNextFrameUnit();
@@ -60,6 +63,11 @@ public class StepAction : IAction
 
         foreach (FieldHero hero in heroes)
         {
+            if (hero.HeroData.CurrentState == HeroState.Fainted || hero.HeroData.CurrentState == HeroState.Dead)
+            {
+                continue;
+            }
+
             var clientRpcParams = new ClientRpcParams
             {
                 Send = new ClientRpcSendParams

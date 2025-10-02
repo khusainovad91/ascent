@@ -28,6 +28,17 @@ public class AttackAction : IAction
 
     public IEnumerator Execute()
     {
+        _enemyObject.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Grunt);
+        LeanTween.delayedCall(0.4f, () => {
+            _enemyObject.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Attack);
+            TargetHero.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Die);
+            var impact = "Impact " + Random.Range(0, 1);
+            Debug.Log(impact);
+            TargetHero.Animator.SetTrigger(impact);
+        });
+
+
+
         _enemyObject.LookOn(TargetHero.CurrentCell.coords.CenterOfCell());
         TargetHero.LookOn(_enemyObject.CurrentCell.coords.CenterOfCell());
         UiManager.Instance.SetUpThisOnEnemyTurn(TargetHero);

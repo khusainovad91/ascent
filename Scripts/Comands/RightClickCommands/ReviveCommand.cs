@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ReviveCommand : RightClickCommand
+public class ReviveCommand : RightClickCommandNoSelect
 {
     public override int AmountOfActions() => 1;
 
@@ -18,7 +18,7 @@ public class ReviveCommand : RightClickCommand
 
     public override string GetCommandText()
     {
-        return "Поднять героя <sprite name=\"arrow\"><sprite name=\"owl\">";
+        return "Help partner \n <sprite name=\"arrow\"><sprite name=\"owl\">";
     }
     public override void SetupCommand(FieldHero chosenHero, FieldObject chosenObject)
     {
@@ -45,7 +45,6 @@ public class ReviveCommand : RightClickCommand
         Hero.GetComponent<HeroStats>().ChangeActionsAmountRpc(-1);
         Hero.GetComponent<FateDicePool>().RollAllDicesRpc();
         CalculateSuccessOrNot();
-        _heroToRevive.GetComponent<RightClickHandler>().RemoveCommandRpc(CommandType.Revive);
         LeanTween.delayedCall(Constants.DICE_ROLL_TIME + Constants.FATE_DICE_RESSET_TIME, () => { Hero.GetComponent<FateDicePool>().HideDicesRpc(1f); 
         });
         IsExecuted = true;
@@ -62,11 +61,12 @@ public class ReviveCommand : RightClickCommand
 
         if (result <= Hero.GetComponent<HeroStats>().wisdom)
         {
-            Debug.Log("Проверка успешна!");
             var duration = _heroToRevive.GetComponent<ConditionHandler>().GetConditionByType<Fainted>().Duration;
+            _heroToRevive.Animator.SetBool("Dead", false);
             _heroToRevive.GetComponent<ConditionHandler>().RemoveConditionByType<Fainted>();
             _heroToRevive.ChangeStateRpc(HeroState.Idle);
             this._isAwaiable = false;
+            _heroToRevive.GetComponent<RightClickHandler>().RemoveCommandRpc(CommandType.Revive);
 
             if (duration < 3)
             {

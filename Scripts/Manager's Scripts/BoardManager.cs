@@ -9,7 +9,6 @@ using JetBrains.Annotations;
 using Unity.Netcode;
 using System.Collections;
 using UnityEngine.UIElements;
-using static CodeMonkey.Utils.World_Mesh;
 
 public class BoardManager : NetworkBehaviour//Singleton<BoardManager>
 {
@@ -55,19 +54,21 @@ public class BoardManager : NetworkBehaviour//Singleton<BoardManager>
     [Rpc(SendTo.Server)]
     public void OcupieCellServerRpc(Vector3Int coords, NetworkObjectReference fieldObjectReference)
     {
+        Debug.Log("Test2");
         OcupieCellClientRpc(coords, fieldObjectReference);
     }
 
     [Rpc(SendTo.Everyone)]
     private void OcupieCellClientRpc(Vector3Int coords, NetworkObjectReference fieldObjectReference)
     {
+        Debug.Log("Test3");
         Cell cell = CellsInBoard[coords];
         fieldObjectReference.TryGet(out NetworkObject fieldNetworkObject);
         FieldObject fieldObject = fieldNetworkObject.GetComponent<FieldObject>();
         Debug.Log(fieldObject.name + " окупировал " + cell);
         cell.isOcupied = true;
         cell.objectOnTile = fieldObject;
-        fieldObject.OcupiedCells.Add(cell);
+        fieldObject.CurrentCell = cell;
     }
 
 
@@ -147,6 +148,11 @@ public class BoardManager : NetworkBehaviour//Singleton<BoardManager>
         BoardManager.Instance.OcupieCellServerRpc(coords, networkObjectReference);
         //var cell = CellsInBoard[position];
         //cell.OcupieCell(hero);
+        var cell = BoardManager.Instance.CellsInBoard[coords];
+        hero.CurrentCell = cell;
+        //hero.OcupiedCells.Clear(); // на всякий случай
+        //hero.OcupiedCells.Add(cell);
+
         hero.transform.position = coords + new Vector3(0.5f, Constants.LIL_ABOVE_FLOOR, 0.5f);
         hero.gameObject.SetActive(true);
     }
@@ -155,7 +161,6 @@ public class BoardManager : NetworkBehaviour//Singleton<BoardManager>
     {
         Cell randomCell = GetRandomNotOcupiedCellFromTileMap(tileToSpawnEnemeies);
         Vector3Int coords = randomCell.coords;
-        //enemyPrefabClone.transform.position = coords + new Vector3(0.5f, Constants.LIL_ABOVE_FLOOR, 0.5f);
         PlaceEnemyOnCellRpc(enemyPrefabClone.GetNetworkObjectReference(), coords);
     }
 
@@ -166,7 +171,9 @@ public class BoardManager : NetworkBehaviour//Singleton<BoardManager>
         var enemy = networkObject.GetComponent<EnemyObject>();
 
         enemy.transform.position = coords + new Vector3(0.5f, Constants.LIL_ABOVE_FLOOR, 0.5f);
-
+        enemy.LookOn(GameManager.Instance.Heroes[
+            new System.Random().Next(0, GameManager.Instance.Heroes.Count)]
+            .FieldHero.transform.position);
         BoardManager.Instance.OcupieCellServerRpc(coords, networkObjectReference);
         //var cell = CellsInBoard[coords];
         //cell.OcupieCell(enemy);

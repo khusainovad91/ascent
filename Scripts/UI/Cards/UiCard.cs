@@ -39,7 +39,8 @@ public abstract class UiCard : MonoBehaviour, IPointerClickHandler, IPointerEnte
     {
         this._heroData = heroData;
         uiSelectHandler = UiSelectHandler.Instance;
-        uiSelectHandler.Hero = heroData;
+        Debug.Log("Test cardName: " + this.name + "/" +  heroData.FieldHero.name);
+        //uiSelectHandler.Hero = heroData;
 
         foreach (var sunSkull in sunAndSkullTexts)
         {
@@ -56,6 +57,8 @@ public abstract class UiCard : MonoBehaviour, IPointerClickHandler, IPointerEnte
     {
         UtilClass.PlayClickAnimation(this.gameObject);
         if (!this._heroData.FieldHero.IsOwner) return;
+        //todo refactor uiSelectHandler.Hero
+        uiSelectHandler.Hero = this._heroData;
 
         bool isCardExecuted = HandlePointerClick(eventData);
         
@@ -123,6 +126,7 @@ public abstract class UiCard : MonoBehaviour, IPointerClickHandler, IPointerEnte
 
         if (!IsClickable || _heroData.IsMakingChoice)
         {
+            Debug.Log(_heroData.IsMakingChoice);
             return false;
         }
 

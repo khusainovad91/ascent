@@ -37,6 +37,7 @@ public class UiSelectHandler: Singleton<UiSelectHandler>
 
     private void SetSelected(MonoBehaviour _object)
     {
+        Debug.Log("Obejctname:" + _object);
         if (_object is FieldHero fieldHero)
         {
             SelectedHero = fieldHero;
@@ -158,7 +159,6 @@ public class UiSelectHandler: Singleton<UiSelectHandler>
 
     public IEnumerator SelectEnemy(List<EnemyObject> enemiesInRange)
     {
-
         UtilClass.ShowEnemiesInRange(enemiesInRange);
 
         SelectControllerManager.Instance.ChangeMode(SelectionMode.Enemy);

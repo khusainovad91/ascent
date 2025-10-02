@@ -36,17 +36,19 @@ public class ChosenHeroUI : NetworkBehaviour
         IsOcupied = true;
         baseHeroSO = SelectCharacterScreenUI.Instance.BaseHeroList.list[heroID];
         _heroPortrait.sprite = baseHeroSO.HeroPrefab.GetComponent<FieldHero>().HeroSprite;
+        _classText.text = baseHeroSO.HeroClass;
     }
 
     public void SetPlayerId(ulong playerId)
     {
         PlayerId = playerId;
+        _playerIdText.color = GetPlayerColor();
         _playerIdText.text = "PlyerID " + playerId;
     }
 
     public HeroData FormHeroData(int heroNumber)
     {
-        Color heroColor = (PlayerId == 0) ? Color.red : Color.blue;
+        Color heroColor = GetPlayerColor();
 
         if (IsOcupied) //&& ClassID != -1)
         {
@@ -55,6 +57,18 @@ public class ChosenHeroUI : NetworkBehaviour
         }
 
         return null;
+    }
+
+    private Color GetPlayerColor()
+    {
+        switch (PlayerId)
+        {
+            case 0: return Color.red;
+            case 1: return Color.blue;
+            case 2: return Color.green;
+            case 3: return Color.yellow;
+            default: return Color.black;
+        }
     }
 
     [Rpc(SendTo.Everyone)]

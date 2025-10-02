@@ -37,8 +37,10 @@ public class HoverInfo : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     {
         Vector2 screenPosition = Input.mousePosition;
 
+        RectTransform rectTransform = UiManager.Instance?.GetComponent<RectTransform>() ?? HoverInfoDescription.Instance.transform.parent.GetComponent<RectTransform>();
+
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            UiManager.Instance.GetComponent<RectTransform>(), // Целевой RectTransform
+            rectTransform, // Целевой RectTransform
             screenPosition, // Экранные координаты
             this.gameObject.GetComponentInParent<Canvas>().worldCamera, // Камера, используемая для рендеринга Canvas
             out Vector2 localPosition // Выходные локальные координаты

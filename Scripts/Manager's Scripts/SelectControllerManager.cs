@@ -50,6 +50,7 @@ public class SelectControllerManager : PersistentSingleton<SelectControllerManag
 
     void Update()
     {
+        Debug.Log("currentMode" + currentMode);
         switch (currentMode)
         {
             case SelectionMode.Free:
@@ -155,7 +156,7 @@ public class SelectControllerManager : PersistentSingleton<SelectControllerManag
     public void ChangeMode(SelectionMode newMode)
     {
         Debug.Log("CurrentSelectionMode: " + currentMode);
-        if (currentMode == newMode) return;
+       // if (currentMode == newMode) return;
         currentMode = newMode;
         HeroControllerManager.Instance.ClearUiOnFloor();
     }

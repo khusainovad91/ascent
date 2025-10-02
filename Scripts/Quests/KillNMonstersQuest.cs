@@ -25,13 +25,14 @@ public class KillNMonstersQuest : Quest
             if (enemy.Name == _monsterName)
             {
                 _counter.Value--;
-                UpdateUiClientRpc($"Убить {_monsterName}: {_counter.Value}");
+                UpdateUiClientRpc($"Kill {_monsterName}: {_counter.Value}");
             }
 
             if (_counter.Value == 0)
             {
                 _isCompleted.Value = true;
-                UpdateUiClientRpc($"<s>Убить {_monsterName}</s>: {_counter.Value}");
+                UpdateUiClientRpc($"<s>Kill {_monsterName}</s>: {_counter.Value}");
+                GameManager.Instance.ChangeState(GameState.Win);
             }
         }
     }

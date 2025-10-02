@@ -43,10 +43,14 @@ public class MoveHeroCommand : ICommand
         // Если достигли текущей цели
         if (fieldHero.transform.position == targetPosition)
         {
+            fieldHero.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Move);
             // Обновление текущей ячейки
             BoardManager.Instance.ClearCellServerRpc(fieldHero.CurrentCell.coords);
-            fieldHero.OcupiedCells.Remove(fieldHero.CurrentCell);
+            fieldHero.CurrentCell = null;
+            //fieldHero.OcupiedCells.Clear();
+            //fieldHero.OcupiedCells.Remove(fieldHero.CurrentCell);
             BoardManager.Instance.OcupieCellServerRpc(targetCell.coords, fieldHero.GetNetworkObjectReference());
+            
 
             // Уменьшаем очки движения
             fieldHero.HeroData.Stats.ChangeMovementPointsRpc(-1);

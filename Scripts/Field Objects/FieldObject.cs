@@ -17,8 +17,8 @@ public class FieldObject : NetworkBehaviour
     public string Name;
     public bool IsSolid;
     public int Size = 1;
-    public List<Cell> OcupiedCells = new();
-    public Cell CurrentCell => OcupiedCells.FirstOrDefault();
+    //public List<Cell> OcupiedCells = new();
+    public Cell CurrentCell; //=> OcupiedCells.FirstOrDefault();
     //public Cell CurrentCell;
     [NonSerialized]
     public Outline Outline;
@@ -49,6 +49,7 @@ public class FieldObject : NetworkBehaviour
         if (CurrentCell != null)
         {
             BoardManager.Instance.ClearCellServerRpc(CurrentCell.coords);
+            EventManager.Instance.TriggerEvent("RecalculateMovement");
             //CurrentCell.ClearCell();
         }
     }
@@ -148,7 +149,8 @@ public class FieldObject : NetworkBehaviour
         BoardManager.Instance.CellsInBoard.TryGetValue(this.GetVector3IntPosition(), out var currentCell);
         if (currentCell != null)
         {
-            OcupiedCells.Add(currentCell);
+            this.CurrentCell = currentCell;
+            //OcupiedCells.Add(currentCell);
         }
     }
 }

@@ -65,10 +65,33 @@ public class UiCardAttack : UiCard
             yield break;
         }
 
+        AudioAndVisuals();
         var attackCommand = new HeroAttackCommand(_heroData.FieldHero, WeaponItem, uiSelectHandler.SelectedEnemy, enemiesInRange[uiSelectHandler.SelectedEnemy]);
         yield return attackCommand.SetUp();
         uiSelectHandler.EndOfMakingChoice<EnemyObject>(enemiesInRange.Keys.ToList());
         uiSelectHandler.RestoreStates();
+    }
+
+    private void AudioAndVisuals()
+    {
+        LeanTween.delayedCall(0.2f, () => _heroData.FieldHero.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Attack));
+        if (WeaponItem.MaxWeaponRange > 1)
+        {
+            LeanTween.delayedCall(0.8f, () =>
+            {
+                uiSelectHandler.SelectedEnemy.Animator.SetTrigger("Impact");
+                uiSelectHandler.SelectedEnemy.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Hitted);
+            });
+        }
+        else
+        {
+            LeanTween.delayedCall(0.2f, () =>
+            {
+                uiSelectHandler.SelectedEnemy.Animator.SetTrigger("Impact");
+                uiSelectHandler.SelectedEnemy.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Hitted);
+            });
+        }
+        _heroData.FieldHero.Animator.SetTrigger("Attack");
     }
 
 

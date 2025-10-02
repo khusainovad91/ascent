@@ -102,8 +102,8 @@ public class RightClickHandler : NetworkBehaviour, IPointerClickHandler
         }
 
         //ƒобавл€ем на UI
-        //&& (possibleCommands.Count > 0 || avaiableCommands.Count > 0)
-        if (commandTextGroup != null ) {
+        //TODO ломает выбор  UiOathOfHonor без проверки на (possibleCommands.Count > 0 || avaiableCommands.Count > 0)
+        if (commandTextGroup != null && (possibleCommands.Count > 0 || avaiableCommands.Count > 0)) {
             commandTextGroup.TurnOn();
             commandTextGroup.ClearCommandTextGroup();
             commandTextGroup.SetUpCommandTextGroup(avaiableCommands);

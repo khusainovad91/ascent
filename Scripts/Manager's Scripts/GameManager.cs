@@ -8,7 +8,6 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 using UnityEngine.SceneManagement;
-using static CodeMonkey.Utils.World_Mesh;
 
 public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameManager>
 {
@@ -22,16 +21,6 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
     public bool IsAnythingIsMovingNow = false;
     public NetworkVariable<GameState> StateOfGame = new NetworkVariable<GameState>(GameState.Menu, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    private void OnEnable()
-    {
-        EventManager.Instance?.Subscribe<HeroData>("OnHeroStateChange", HandleHeroStateChange);
-    }
-
-    private void OnDisable()
-    {
-        EventManager.Instance?.Unsubscribe<HeroData>("OnHeroStateChange", HandleHeroStateChange);
-    }
-
     public override void OnNetworkSpawn()
     {
         Instance = this;
@@ -42,6 +31,7 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
         Heroes = new List<HeroData>();
         heroToNODict = new Dictionary<HeroData, NetworkObjectReference>();
         ChangeState(GameState.SelectCharacterScreen);
+        EventManager.Instance?.Subscribe<HeroData>("OnHeroStateChange", HandleHeroStateChange);
     }
 
 
@@ -76,11 +66,12 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
                 break;
             case GameState.Win:
                 //todo
+                HandleWinRpc();
                 Debug.Log("WIN");
                 break;
             case GameState.Lose:
                 //todo
-                HandleLoose();
+                HandleLooseRpc();
                 Debug.Log("LOOSE");
                 break;
             default:
@@ -88,15 +79,17 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
         }
     }
 
-    private void HandleLoose()
+    [Rpc(SendTo.Everyone)]
+    private void HandleWinRpc()
     {
-        EventManager.Instance.TriggerEvent("OnLoose");
+        EventManager.Instance.TriggerEvent("OnHeroesWon");
     }
 
-    //private void AddDices()
-    //{
-    //    EventManager.Instance.TriggerEvent("AddDices");
-    //}
+    [Rpc(SendTo.Everyone)]
+    private void HandleLooseRpc()
+    {
+        EventManager.Instance.TriggerEvent("OnEnemiesWon");
+    }
 
     private void HandleSelectCharacterScreen()
     {
@@ -111,20 +104,6 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
     [Rpc(SendTo.Everyone)]
     private void HandleStartingRpc()
     {
-        //Grid grid = GameObject.FindGameObjectWithTag("Grid").GetComponent<Grid>();
-        //var tiles = grid.GetComponentsInChildren<TileMapManager>(false).ToList<TileMapManager>();
-
-        //BoardManager.Instance.grid = grid;
-        //BoardManager.Instance.tiles = tiles;
-
-        //foreach (var tile in tiles)
-        //{
-        //    tile.CreateCellsInTile();
-        //    Debug.Log("CellsInTile: " + tile.cellsInTileDict.Count);
-        //    tile.AddCellsFromTileMapToBoard();
-        //}
-
-        //BoardManager.Instance.AddNeighboursToCells();
         StartCoroutine(Wait4BoardManagerToSpawn());
     }
 
@@ -145,10 +124,12 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
     [Rpc(SendTo.Everyone)]
     private void HandleSpawningHeroesRpc()
     {
-        BoardManager.Instance.PlaceHeroesOnABoard();
+        LeanTween.delayedCall(1f, () => BoardManager.Instance.PlaceHeroesOnABoard());
+        LeanTween.delayedCall(2f, () => EventManager.Instance.TriggerEvent("HeroesSpawned"));
+        LeanTween.delayedCall(2f, () => CameraController.Instance.MoveCameraToTargetRpc(Heroes.First().FieldHero.GetNetworkObjectReference(), 0.6f));
+
         //todo исправить, может быть время загрузки больше 1f и тогда базовые кубики защиты опять сломаются
         //EventManager.Instance.TriggerEvent("HeroesSpawned");
-        LeanTween.delayedCall(0.2f, () => EventManager.Instance.TriggerEvent("HeroesSpawned"));
         ChangeState(GameState.SpawningEnemies);
     }
 
@@ -172,7 +153,7 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
 
         EventManager.Instance.TriggerEvent("OnRoundStart");
 
-        if (!IsServer) return;
+        //if (!IsServer) return;
         foreach (var hero in Heroes)
         {
             //todo questionable
@@ -209,12 +190,18 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
 
     private void HandleHeroStateChange(HeroData heroData)
     {
+        var heroesAlive = Heroes.Where(hero => hero.CurrentState != HeroState.Fainted && hero.CurrentState != HeroState.Dead);
+        Debug.Log("Героев в живых: " + heroesAlive.Count());
+
+        if (heroesAlive.Count() == 0)
+        {
+            ChangeState(GameState.Lose);
+        }
+
         if (heroData.CurrentState == HeroState.EndedTurn)
         {
-            var heroesAlive = Heroes.Where(hero => hero.CurrentState != HeroState.Fainted || hero.CurrentState != HeroState.Dead);
-            Debug.Log("Героев в живых: " + heroesAlive.Count());
-            _endedTurn++;
             Debug.Log("endedTurn: " + _endedTurn);
+            _endedTurn++;
             if (heroesAlive.Count() == _endedTurn)
             {
                 this.ChangeState(GameState.EnemyTurn);
@@ -292,6 +279,12 @@ public class GameManager : NetworkBehaviour //NetworkPersistentSingleton<GameMan
     public NetworkObjectReference GetHeroNetworkObjectReferenceByNumber(int number)
     {
         return heroToNODict.First((it) => it.Key.HeroNumber == number).Value;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        EventManager.Instance?.Unsubscribe<HeroData>("OnHeroStateChange", HandleHeroStateChange);
+        base.OnNetworkDespawn();
     }
 }
 

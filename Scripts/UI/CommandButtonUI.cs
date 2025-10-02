@@ -7,6 +7,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static Unity.Burst.Intrinsics.X86.Avx;
+using UnityEngine.UIElements;
 using static UnityEngine.GraphicsBuffer;
 
 public class CommandButtonUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
@@ -21,6 +23,8 @@ public class CommandButtonUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
         _commandTextGroup = commandTextGroup;
         this._rcCommand = command;
         commandText.text = _rcCommand.GetCommandText();
+        commandText.lineSpacing = -100;
+        commandText.margin = new Vector4(0.1651903f, 0.6795411f, 0.1651902f, -0.04336881f);
     }
 
     private void OnMouseExit()
@@ -56,7 +60,7 @@ public class CommandButtonUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     private void Awake()
     {
-        this.GetComponent<Button>().onClick.AddListener(() => {
+        this.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
             StartCoroutine(OnClick());
         });
     }

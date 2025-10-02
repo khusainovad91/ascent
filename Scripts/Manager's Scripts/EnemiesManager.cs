@@ -46,7 +46,7 @@ public class EnemiesManager : NetworkBehaviour
             return;    
         }
         
-        InstantiateEnemiesAndSpawn(firstEnemy, 5, startingEnemiesTile);
+        InstantiateEnemiesAndSpawn(firstEnemy, 3, startingEnemiesTile);
     }
 
     private void InstantiateEnemiesAndSpawn(EnemyObject enemyPrefab, int amount, TileMapManager spawnTile)
@@ -96,7 +96,11 @@ public class EnemiesManager : NetworkBehaviour
         }
 
         Debug.Log("Все враги завершили ходы!");
-        GameManager.Instance.ChangeState(GameState.HeroTurn);
+        if (GameManager.Instance.Heroes.Where(hero => hero.CurrentState != HeroState.Fainted 
+            && hero.CurrentState != HeroState.Dead).Count() != 0)
+        {
+            GameManager.Instance.ChangeState(GameState.HeroTurn);
+        }
     }
 
     public void RemoveEnemy(EnemyObject enemyObject)

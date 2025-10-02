@@ -100,7 +100,6 @@ namespace ExtensionMethods
 
                 return cell;
             }
-
             return null;
         }
 

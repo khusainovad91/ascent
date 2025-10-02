@@ -7,6 +7,7 @@ using UnityEngine;
 [RequireComponent (typeof(EnemyObject))]
 public class EnemyStats : Stats
 {
+    [SerializeField] private ParticleSystem _deathFX;
     //todo переделать на List<Cube>
     //todo 
     //intelect lvl
@@ -70,11 +71,15 @@ public class EnemyStats : Stats
     {
         yield return HealthBar.HandleHpChange(this.Hp);
 
-        if (this.Hp <= 0 && IsServer)
+        if (this.Hp <= 0)
         {
-            var thisEnemy = this.GetComponent<EnemyObject>();
-            EventManager.Instance.TriggerEvent<EnemyObject>("EnemyDied", thisEnemy);
-            thisEnemy.GetNetworkObject().Despawn();
+            yield return waitForDeathAniamtion();
+            if (IsServer)
+            {
+                var thisEnemy = this.GetComponent<EnemyObject>();
+                EventManager.Instance.TriggerEvent<EnemyObject>("EnemyDied", thisEnemy);
+                thisEnemy.GetNetworkObject().Despawn();
+            }
         } else {
             this.GetComponent<EnemyObject>().OnMouseExit();
         }
@@ -104,5 +109,13 @@ public class EnemyStats : Stats
         StartCoroutine(MpBar.HandleMpChange(this.MovementPoints));
     }
 
+    IEnumerator waitForDeathAniamtion()
+    {
+        this.GetComponent<EnemyObject>().Animator.SetTrigger("Dead");
+        this.GetComponent<PersonSoundHandler>().PlaySound(PersonSound.Die);
+        yield return new WaitForSeconds(2f);
+        _deathFX.Play();
+        yield return new WaitForSeconds(0.3f);
+    }
 }
 

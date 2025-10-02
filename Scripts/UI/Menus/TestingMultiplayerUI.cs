@@ -12,7 +12,9 @@ public class TestingMultiplayerUI : MonoBehaviour
         StartHost.onClick.AddListener(() =>
         {
             NetworkManager.Singleton.StartHost();
-            CustomSceneManager.Instance.LoadScene(Scene.CharacterSelectScene);
+            //SceneFader.Instance.StartSceneWithFaderServerRpc(CustomScene.CharacterSelectScene);
+            StartCoroutine(SceneFader.Instance.LoadSceneWithFader(CustomScene.CharacterSelectScene));
+            //CustomSceneManager.Instance.LoadScene(Scene.CharacterSelectScene);
 
         });
         StartClient.onClick.AddListener(() =>
